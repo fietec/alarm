@@ -1,5 +1,5 @@
 # Alarm
-A minimalistic alarm application writte in C.
+A minimalistic alarm application written in C.
 
 ## How to build
 NOTE: This application is **Windows-only**!
