@@ -2,8 +2,8 @@
 A minimalistic alarm application written in C.
 
 ## How to build
-NOTE: This application is **Windows-only**!
-To build this application, run `build.sh` or directly in the terminal:
+NOTE: This application is **Windows-only**! This is due to the use of the `PlaySound` function from the **win32-api** for which I have not yet found a cross-platform alternative.
+To build, run `build.sh` or directly in the terminal:
 ```
 gcc -o alarm c:\windows\system32\winmm.dll alarm.c
 ```
@@ -26,7 +26,7 @@ alarm -s 09 fifteen
 ```
 will result in the alarm going off at *09:00*.
 
-If the `--silent` flag is not set, the default Apple ringtone will play at the specified alarm time.
+If the `--silent` flag is not set, the default Apple ring tone will play at the specified alarm time.
 
 ## License
 This project is licensed under the MIT License - see the `LICENSE` file for details.

@@ -75,12 +75,14 @@ int main(int argc, char **argv)
         }
         sleep(1);
     }
+    // alarm time reached
     if (silent){
         printf("Time to wake up! Press ENTER to exit..\n");
         getchar();
         printf("Good morning!\n");
     }
     else{
+        // TODO: make this platform independent
         printf("Time to wake up! Press Ctrl-C to exit..\n");
         for (size_t i=0; i<20; ++i){
             PlaySound("iphone_alarm.wav", NULL, SND_FILENAME); 
