@@ -14,10 +14,11 @@ To set an alarm run `alarm` with the following arguments:
 alarm [..flags] <hour> <minute>
 ```
 The supported arguments are:
-- `<hour>`:        (int)  hour of the alarm time
-- `<minute>`:      (int)  minute of the alarm time
-- `--silent` [`-s`]: (flag) disable ring tone
-- `--help` [`-h`]:   (flag) print help info
+- `<hour>`:                 (int)  hour of the alarm time
+- `<minute>`:               (int)  minute of the alarm time
+- `--rings` [`-r`] `<rings>`: (flag)[int] number or ringtones
+- `--silent` [`-s`]:        (flag) disable ring tone
+- `--help` [`-h`]:          (flag) print help info
 
 For `<hour>` and `<minute>`, all arguments which are not valid integers are interpreted as 0.
 Therefore, e.g. running alarm like this:

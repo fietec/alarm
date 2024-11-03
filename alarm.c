@@ -8,6 +8,8 @@
 #include <windows.h>
 #include <mmsystem.h>
 
+#define ALARM_RING_NUMBER 20
+
 char* shift_args(int *argc, char ***argv)
 {
     assert(*argc > 0 && "Args out of bounce!");
@@ -23,10 +25,11 @@ void print_usage(char *name)
     printf("Alarm: How to use:\n");
     printf("  %s [flags] <hour> <minute>\n\n", name);
     printf("  Arguments:\n");
-    printf("    <hour>:        (int)  hour of the alarm time\n");
-    printf("    <minute>:      (int)  minute of the alarm time\n");
-    printf("    --silent [-s]: (flag) disable ring tone\n");
-    printf("    --help [-h]:   (flag) print this help dialog\n");
+    printf("    <hour>:               (int)       hour of the alarm time\n");
+    printf("    <minute>:             (int)       minute of the alarm time\n");
+    printf("    --rings [-r] <rings>: (flag)[int] number or ringtones\n");
+    printf("    --silent [-s]:        (flag)      disable ring tone\n");
+    printf("    --help [-h]:          (flag)      print this help dialog\n");
 }
 
 int main(int argc, char **argv)
@@ -35,6 +38,7 @@ int main(int argc, char **argv)
     size_t args_found = 0;
     int alarm_hour = 0;
     int alarm_minute = 0;
+    int ring_number = ALARM_RING_NUMBER;
     bool silent = false;
     while (argc > 0){
         char *arg = shift_args(&argc, &argv);
@@ -42,9 +46,20 @@ int main(int argc, char **argv)
             print_usage(program_name);
             return 0;
         }
-        if (strcmp(arg, "-s") == 0 || strcmp(arg, "--silent") == 0){
+        if (strcmp(arg, "--silent") == 0 || strcmp(arg, "-s") == 0){
             silent = true;
             continue;
+        }
+        if (strcmp(arg, "--rings") == 0 || strcmp(arg, "-r") == 0){
+            char *sn = shift_args(&argc, &argv);
+            int n = atoi(sn);
+            if (n != 0){
+                ring_number = n;
+                continue;
+            }
+            fprintf(stderr, "Invalid integer: \"%s\"\n", sn);
+            print_usage(program_name);
+            return 1;
         }
         args_found += 1;
         switch(args_found){
@@ -84,7 +99,7 @@ int main(int argc, char **argv)
     else{
         // TODO: make this platform independent
         printf("Time to wake up! Press Ctrl-C to exit..\n");
-        for (size_t i=0; i<20; ++i){
+        for (size_t i=0; i<ring_number; ++i){
             PlaySound("iphone_alarm.wav", NULL, SND_FILENAME); 
         }
 	    printf("Finished but nobody woke :(\n");
