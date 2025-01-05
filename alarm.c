@@ -5,10 +5,15 @@
 #include <assert.h>
 #include <string.h>
 #include <stdbool.h>
-#include <windows.h>
-#include <mmsystem.h>
+#define MINIAUDIO_IMPLEMENTATION
+#include "miniaudio.h"
 
-#define ALARM_RING_NUMBER 20
+#ifdef _WIN32
+#include <conio.h>
+#endif // _WIN32
+
+#define ALARM_DEF_RING_NUMBER 20
+#define ALARM_DEF_AUDIO_FILE "alarm.wav"
 
 char* shift_args(int *argc, char ***argv)
 {
@@ -25,11 +30,12 @@ void print_usage(char *name)
     printf("Alarm: How to use:\n");
     printf("  %s [flags] <hour> <minute>\n\n", name);
     printf("  Arguments:\n");
-    printf("    <hour>:               (int)       hour of the alarm time\n");
-    printf("    <minute>:             (int)       minute of the alarm time\n");
-    printf("    --rings [-r] <rings>: (flag)[int] number or ringtones\n");
-    printf("    --silent [-s]:        (flag)      disable ring tone\n");
-    printf("    --help [-h]:          (flag)      print this help dialog\n");
+    printf("    <hour>:                    (int)        hour of the alarm time\n");
+    printf("    <minute>:                  (int)        minute of the alarm time\n");
+    printf("    --rings [-r] <rings>:      (flag)[int]  number of ringtones\n");
+    printf("    --file [-f] <audio file> : (flag)[path] audio file to play\n");
+    printf("    --silent [-s]:             (flag)       disable ring tone\n");
+    printf("    --help [-h]:               (flag)       prints help dialog\n");
 }
 
 int main(int argc, char **argv)
@@ -38,7 +44,8 @@ int main(int argc, char **argv)
     size_t args_found = 0;
     int alarm_hour = 0;
     int alarm_minute = 0;
-    int ring_number = ALARM_RING_NUMBER;
+    int ring_count = ALARM_DEF_RING_NUMBER;
+    char *audio_file = ALARM_DEF_AUDIO_FILE;
     bool silent = false;
     while (argc > 0){
         char *arg = shift_args(&argc, &argv);
@@ -54,12 +61,24 @@ int main(int argc, char **argv)
             char *sn = shift_args(&argc, &argv);
             int n = atoi(sn);
             if (n != 0){
-                ring_number = n;
+                ring_count = n;
                 continue;
             }
             fprintf(stderr, "Invalid integer: \"%s\"\n", sn);
             print_usage(program_name);
             return 1;
+        }
+        if (strcmp(arg, "--file") == 0 || strcmp(arg, "-f") == 0){
+            char *file = shift_args(&argc, &argv);
+            FILE *f = fopen(file, "r");
+            if (!file){
+                printf("Invalid path!: \"%s\"\n", file);
+                fclose(f);
+                return 1;
+            }
+            fclose(f);
+            audio_file = file;
+            continue;
         }
         args_found += 1;
         switch(args_found){
@@ -97,12 +116,39 @@ int main(int argc, char **argv)
         printf("Good morning!\n");
     }
     else{
-        // TODO: make this platform independent
-        printf("Time to wake up! Press Ctrl-C to exit..\n");
-        for (size_t i=0; i<ring_number; ++i){
-            PlaySound("iphone_alarm.wav", NULL, SND_FILENAME); 
+        ma_engine engine;
+        ma_result result = ma_engine_init(NULL, &engine);
+        if (result != MA_SUCCESS){
+            printf("Failed to initialize audio engine.");
+            return 1;
         }
-	    printf("Finished but nobody woke :(\n");
+    #ifdef _WIN32
+        printf("Time to wake up!. Press any key to exit...\n");
+    #else
+        printf("Time to wake up!. Press Ctrl-C to exit...\n");
+    #endif // _WIN32
+        bool loop = true;
+        for (size_t i=0; i<ring_count && loop; ++i){
+            ma_sound sound;
+            result = ma_sound_init_from_file(&engine, audio_file, 0, NULL, NULL, &sound);
+            if (result != MA_SUCCESS){
+                printf("Failed to init sound!\n");
+                return 1;
+            }
+            ma_sound_start(&sound);
+            while (ma_sound_is_playing(&sound)) {
+            #ifdef _WIN32
+                if (kbhit()){
+                    loop = false;
+                    break;
+                }
+            #endif // _WIN32
+            }
+            ma_sound_stop(&sound);
+            ma_sound_uninit(&sound);
+        }
+        ma_engine_uninit(&engine);
+        printf("%s\n", loop ? "Alarm finished but nobody woke :(" : "Good Morning!");
     }
     return 0;
 }
