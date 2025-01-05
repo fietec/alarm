@@ -13,7 +13,7 @@
 #endif // _WIN32
 
 #define ALARM_DEF_RING_NUMBER 20
-#define ALARM_DEF_AUDIO_FILE "alarm.wav"
+#define ALARM_DEF_AUDIO_FILE "./ringtones/alarm.wav"
 
 char* shift_args(int *argc, char ***argv)
 {
